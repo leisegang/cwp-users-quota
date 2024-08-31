@@ -179,7 +179,7 @@ $quota = $cwpUsersQuota->calculate();
 
 <div id="tablecontainer">
     <?php
-    $sql = "SELECT u.*, p.package_name, p.disk_quota FROM user u, packages p WHERE p.id = u.package ORDER by u.id ASC";
+    $sql = "SELECT u.*, u.bandwidth as uBandwidth, p.package_name, p.bandwidth, p.disk_quota FROM user u, packages p WHERE p.id = u.package ORDER by u.username ASC";
     $stmt = $conn->prepare($sql);
     $stmt->execute();
     $meta = $stmt->result_metadata();
@@ -202,7 +202,7 @@ $quota = $cwpUsersQuota->calculate();
     ?>
     <table border=1 id="dbtable">
         <tr>
-            <th class="center">LP.</th>
+            <th class="center">NO.</th>
             <th class="center">User Name</th>
             <th class="center">Domain</th>
             <th class="center">Package name</th>
@@ -212,7 +212,10 @@ $quota = $cwpUsersQuota->calculate();
             <th class="center">Mail quota</th>
             <th class="center">Used quota</th>
             <th class="center">Free quota</th>
-            <th class="center">Percent</th>
+            <th class="center">Quota Percent</th>
+			<th class="center">Package Bandwidth</th>
+            <th class="center">Used Bandwidth</th>
+			<th class="center">Bandwidth Percent</th>
         </tr>
         <?php
         $allAccounts = count($result);
@@ -222,6 +225,8 @@ $quota = $cwpUsersQuota->calculate();
         $sum['mysql']['quota'] = 0;
         $sum['all'] = 0;
         $sum['free'] = 0;
+		$sum['packband'] = 0;
+		$sum['usedband'] = 0;
         for ($i = 0; $i <= $allAccounts - 1; $i++) :
             $userName = $result[$i]['username'];
             $domain = $result[$i]['domain'];
@@ -229,7 +234,7 @@ $quota = $cwpUsersQuota->calculate();
             <tr>
                 <td class="right"><?php echo $i + 1 ?>.</td>
                 <td class="left"><?php echo $userName ?></td>
-                <td class="left"><?php echo $domain ?></td>
+                <td class="left"><a href="http://<?php echo $domain ?>" target="_blank"><?php echo $domain ?></a></td>
                 <td class="left"><?php echo($result[$i]['package_name']) ?></td>
                 <td class="right"><?php echo round($result[$i]['disk_quota'] / 1024, 2) ?> GB</td>
                 <td class="right">
@@ -313,10 +318,10 @@ $quota = $cwpUsersQuota->calculate();
                     }
 
                     $progressBarClass = 'progressBarGreen';
-                    if ($usedQuotaProgress > 50) {
+                    if ($usedQuotaProgress > 70) {
                         $progressBarClass = 'progressBarOrange';
                     }
-                    if ($usedQuotaProgress > 90) {
+                    if ($usedQuotaProgress > 85) {
                         $progressBarClass = 'progressBarRed';
                     }
                     if ($usedQuotaProgress > 100) {
@@ -325,32 +330,98 @@ $quota = $cwpUsersQuota->calculate();
 
                     ?>
                     <div class="progressBox">
-                        <div class='<?= $progressBarClass; ?>' style="width:<?= $usedQuotaProgress; ?>px;"></div>
+                        <div class='<?= $progressBarClass; ?>' style="width:<?= $usedQuotaProgress; ?>%;"></div>
                     </div>
                 </td>
+				<td class="right">
+                    <?php
+
+                    $packageBandwidth = $result[$i]['bandwidth'] / 1024;
+
+                    echo $packageBandwidth;
+                    echo ' GB ';
+					$sum['packband'] += $packageBandwidth;
+
+                    ?>
+                </td>
+				<td class="right">
+                    <?php
+                    $usedBandwidth = $result[$i]['uBandwidth'];
+
+                    echo round($usedBandwidth / 1024, 2);
+                    echo ' GB ';
+					$sum['usedband'] += $usedBandwidth;
+
+                    ?>					
+					
+                </td>
+				<td>
+                    <?php
+
+                    $packageBandwidth = $result[$i]['bandwidth'];
+                    if ($packageBandwidth == "0") {
+                        $usedBandwidthProgress = 0;
+                        echo "[Unlimited]";
+                    } else {
+                        $usedBandwidthPercent = round($usedBandwidth * 100 / $packageBandwidth, 2);
+                        $usedBandwidthProgress = round($usedBandwidth * 100 / $packageBandwidth, 0);
+                        echo "[$usedBandwidthPercent %]";
+                    }
+
+                    $progressBarClass = 'progressBarGreen';
+                    if ($usedBandwidthProgress > 70) {
+                        $progressBarClass = 'progressBarOrange';
+                    }
+                    if ($usedBandwidthProgress > 85) {
+                        $progressBarClass = 'progressBarRed';
+                    }
+                    if ($usedBandwidthProgress > 100) {
+                        $usedBandwidthProgress = 100;
+                    }
+
+                    ?>
+                    <div class="progressBox">
+                        <div class='<?= $progressBarClass; ?>' style="width:<?= $usedBandwidthProgress; ?>%;"></div>
+                    </div>
+                </td>
+				
+				
             </tr>
         <?php endfor; ?>
         <thead>
         <tr>
-            <td colspan="2" class="left">Total users: <?= $allAccounts; ?></td>
-            <td colspan="3" class="right">Sum:</td>
-            <td class="right">
-                <?php echo round($sum['home'] / 1024 / 1024 / 1024, 2); ?> GB
+            <td colspan="2" class="left"><b>Total users: <?= $allAccounts; ?></b></td>
+            <td colspan="3" class="right"><b>Sum:</b></td>
+            <td class="right"><b>
+                <?php echo round($sum['home'] / 1024 / 1024 / 1024, 2); ?> GB</b>
             </td>
-            <td class="right">
-                <?php echo round($sum['mysql']['quota'] / 1024 / 1024 / 1024, 2); ?> GB
-                [<?php echo $sum['mysql']['count']; ?>]
+            <td class="right"><b>
+                <?php echo round($sum['mysql']['quota'] / 1024 / 1024 / 1024, 2); ?> GB</b>
+               <b> [<?php echo $sum['mysql']['count']; ?>]</b>
             </td>
-            <td class="right">
-                <?php echo round($sum['email'] / 1024 / 1024 / 1024, 2); ?> GB
+            <td class="right"><b>
+                <?php echo round($sum['email'] / 1024 / 1024 / 1024, 2); ?> GB</b>
             </td>
-            <td class="right">
-                <?php echo round($sum['all'] / 1024 / 1024 / 1024, 2); ?> GB
+            <td class="right"><b>
+                <?php echo round($sum['all'] / 1024 / 1024 / 1024, 2); ?> GB</b>
             </td>
-            <td class="right">
-                <?php echo round($sum['free'] / 1024 / 1024 / 1024, 2); ?> GB
+            <td class="right"><b>
+                <?php echo round($sum['free'] / 1024 / 1024 / 1024, 2); ?> GB</b>
             </td>
-            <td></td>
+			<td class="right"><b>  
+            </td>
+            <td class="right"><b>
+            </td>
+			<td class="right"><b>
+                <?php 
+					$result = mysqli_query($conn, 'SELECT SUM(bandwidth) AS totalbandwidth FROM user'); 
+					$row = mysqli_fetch_assoc($result); 
+					$sum = $row['totalbandwidth'];
+					echo round($sum / 1024, 2);
+					?> GB</b>
+            </td>			
+			<td class="right"><b>   
+            </td>
         </tr>
         </thead>
     </table>
@@ -364,7 +435,11 @@ $quota = $cwpUsersQuota->calculate();
 
     #dbtable td, #dbtable th {
         padding: 6px;
+		white-space: nowrap;
+		min-width: fit-content;
     }
+	td:last-child {
+	}
     .center {
         text-align: center;
     }
@@ -372,20 +447,20 @@ $quota = $cwpUsersQuota->calculate();
         text-align: right;
     }
     .progressBox {
-        width: 100px;
-        height: 10px;
+		width: 300px;
+        height: 12px;
         border: 1px solid;
     }
     .progressBarGreen {
-        height: 8px;
+        height: 10px;
         background-color: green;
     }
     .progressBarOrange {
-        height: 8px;
+        height: 10px;
         background-color: orange;
     }
     .progressBarRed {
-        height: 8px;
+        height: 10px;
         background-color: red;
     }
 </style>
