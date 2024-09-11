@@ -346,20 +346,22 @@ $quota = $cwpUsersQuota->calculate();
                 </td>
 				<td class="right">
                     <?php
-                    $usedBandwidth = $result[$i]['uBandwidth'];
-
-                    echo round($usedBandwidth / 1024, 2);
-                    echo ' GB ';
-					$sum['usedband'] += $usedBandwidth;
-
-                    ?>					
-					
+					$usedBandwidth = $result[$i]['uBandwidth'];
+					if ($usedBandwidth == "") {
+                        $usedBandwidth = 0;
+                        echo "0 GB";
+                    } else {
+						echo round($usedBandwidth / 1024, 2);
+						echo ' GB ';
+						$sum['usedband'] += $usedBandwidth;
+                    }
+                    ?>										
                 </td>
 				<td>
                     <?php
 
                     $packageBandwidth = $result[$i]['bandwidth'];
-                    if ($packageBandwidth == "0") {
+                    if ($packageBandwidth == "") {
                         $usedBandwidthProgress = 0;
                         echo "[Unlimited]";
                     } else {
@@ -383,8 +385,7 @@ $quota = $cwpUsersQuota->calculate();
                     <div class="progressBox">
                         <div class='<?= $progressBarClass; ?>' style="width:<?= $usedBandwidthProgress; ?>%;"></div>
                     </div>
-                </td>
-				
+                </td>				
 				
             </tr>
         <?php endfor; ?>
