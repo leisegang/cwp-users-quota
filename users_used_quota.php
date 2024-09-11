@@ -333,33 +333,29 @@ $quota = $cwpUsersQuota->calculate();
                         <div class='<?= $progressBarClass; ?>' style="width:<?= $usedQuotaProgress; ?>%;"></div>
                     </div>
                 </td>
-				<td class="right">
+		<td class="right">
                     <?php
-
                     $packageBandwidth = $result[$i]['bandwidth'] / 1024;
-
                     echo $packageBandwidth;
                     echo ' GB ';
-					$sum['packband'] += $packageBandwidth;
-
+		    $sum['packband'] += $packageBandwidth;
                     ?>
                 </td>
-				<td class="right">
+		<td class="right">
                     <?php
-					$usedBandwidth = $result[$i]['uBandwidth'];
-					if ($usedBandwidth == "") {
+			$usedBandwidth = $result[$i]['uBandwidth'];
+			if ($usedBandwidth == "") {
                         $usedBandwidth = 0;
                         echo "0 GB";
                     } else {
-						echo round($usedBandwidth / 1024, 2);
-						echo ' GB ';
-						$sum['usedband'] += $usedBandwidth;
+			echo round($usedBandwidth / 1024, 2);
+			echo ' GB ';
+			$sum['usedband'] += $usedBandwidth;
                     }
                     ?>										
                 </td>
-				<td>
+		<td>
                     <?php
-
                     $packageBandwidth = $result[$i]['bandwidth'];
                     if ($packageBandwidth == "") {
                         $usedBandwidthProgress = 0;
@@ -421,7 +417,7 @@ $quota = $cwpUsersQuota->calculate();
 					echo round($sum / 1024, 2);
 					?> GB</b>
             </td>			
-			<td class="right"><b>   
+	    <td class="right"><b>   
             </td>
         </tr>
         </thead>
