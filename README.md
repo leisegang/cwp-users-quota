@@ -24,6 +24,6 @@ add this line
 Download `users_used_quota.php`
 Upload `users_used_quota.php` in `/usr/local/cwpsrv/htdocs/resources/admin/modules/`
 
-You can access the module from `Other` Menu in CWP Menu
+You can access the module from `Plugins` Menu in CWP Menu
 
 I am open to suggestion, feel free to pull request if you think you can improve my code.
